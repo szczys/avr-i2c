@@ -2,25 +2,10 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "font5x8.h"
+#include "i2c-bitbang.h"
 
 void Delay_ms(int cnt);
-void i2c_start(void);
-void i2c_stop(void);
-void i2c_writebit(uint8_t val);
-void i2c_writebyte(uint8_t byte);
-void init_i2c(void);
 
-
-#define I2C_PORT  PORTB
-#define I2C_DDR   DDRB
-#define SCK   1<<PB6
-#define SDA   1<<PB7
-
-#define I2C_SDA_LO    I2C_DDR |= SDA
-#define I2C_SCK_LO    I2C_DDR |= SCK
-#define I2C_SDA_HI    I2C_DDR &= ~(SDA)
-#define I2C_SCK_HI    I2C_DDR &= ~(SCK)
-#define I2C_WAIT      _delay_us(1)
 
 #define UP  (1<<PC2)
 #define DN  (1<<PC0)
@@ -46,62 +31,6 @@ void init_io(void) {
   //Set up button input
   BUTDDR &= ~BUTMASK;
   BUTPORT |= BUTMASK;
-}
-
-void i2c_start(void) {
-  I2C_SCK_HI;
-  I2C_SDA_HI;
-  I2C_SDA_LO;
-  I2C_WAIT;
-  I2C_SCK_LO;
-  I2C_WAIT;
-}
-
-void i2c_stop(void) {
-  I2C_SDA_LO;
-  I2C_WAIT;
-  I2C_SCK_HI;
-  I2C_WAIT;
-  I2C_SDA_HI;
-  I2C_WAIT;
-}
-
-void i2c_writebit(uint8_t val) {
-  if (val) { I2C_SDA_HI; }
-  else { I2C_SDA_LO; }
-  I2C_WAIT;
-  I2C_SCK_HI;
-  I2C_WAIT;
-  I2C_SCK_LO;
-}
-
-void i2c_writebyte(uint8_t byte) {
-  for (uint8_t i=0; i<8; i++) {
-    i2c_writebit(byte & 0x80);
-    byte <<= 1;
-  }
-
-  //Make sure you read the ACK
-  I2C_SDA_HI;
-  I2C_WAIT;
-  I2C_SCK_HI;
-  I2C_WAIT;
-  //Read should be done on this line. Not using it yet so not doing read.
-  I2C_SCK_LO;
-  I2C_WAIT;
-
-}
-
-void i2c_cmd(uint8_t cmd) {
-  i2c_start();
-  i2c_writebyte(0x78);
-  i2c_writebyte(0x80);
-  i2c_writebyte(cmd);
-  i2c_stop();
-}
-
-void init_i2c(void) {
-  I2C_DDR &= ~(SCK | SDA);
 }
 
 void init_oled(void) {
@@ -213,6 +142,10 @@ int main(void)
       i2c_cmd(0x21);
       i2c_cmd(0x00);
       i2c_cmd(0xFF);
+      //Set page start and end address
+      i2c_cmd(0x22);
+      i2c_cmd(0x00);
+      i2c_cmd(0x03);
       if (inputs & SW) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
@@ -222,13 +155,19 @@ int main(void)
       if (inputs & LT) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Asa");
+        uint8_t counter = 10;
+        while(counter > 0) {
+          oled_puts("Asa ");
+          counter = counter - 1;
+          oled_putc(counter+'0');
+        }
+        //i2c_cmd(0x2F);
         ++poordebounce;
       }
       if (inputs & UP) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Ione");
+        oled_puts("There once was a girl named Ione who lived next to a beautiful  lake.");
         ++poordebounce;
       }
       if (inputs & DN) {
@@ -240,7 +179,7 @@ int main(void)
       if (inputs & RT) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Buddha");
+        oled_puts("Ione");
         ++poordebounce;
       }
       if (poordebounce) {
