@@ -1,4 +1,4 @@
-#define F_CPU 1000000L
+#define F_CPU 8000000L
 
 #include <avr/io.h>
 #include "i2c-bitbang.h"
@@ -13,7 +13,7 @@
 #define I2C_SCK_LO    I2C_DDR |= SCK
 #define I2C_SDA_HI    I2C_DDR &= ~(SDA)
 #define I2C_SCK_HI    I2C_DDR &= ~(SCK)
-#define I2C_WAIT      _delay_us(1)
+#define I2C_WAIT      _delay_us(5)
 
 void i2c_start(void) {
   I2C_SCK_HI;

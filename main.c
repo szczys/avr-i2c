@@ -1,4 +1,4 @@
-#define F_CPU 1000000L
+#define F_CPU 8000000L
 #include <avr/io.h>
 #include <util/delay.h>
 #include "font5x8.h"
@@ -184,7 +184,7 @@ int main(void)
       }
       if (poordebounce) {
         //Delay so we don't read multiple presses
-        Delay_ms(80);
+        Delay_ms(40);
         PORTB &= ~(1<<PB0);
       }
     }
