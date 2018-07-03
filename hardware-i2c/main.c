@@ -1,6 +1,7 @@
 #define F_CPU 8000000L
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "font5x8.h"
 #include "i2c-hardware.h"
@@ -18,7 +19,7 @@ void Delay_ms(int cnt);
 #define BUTMASK (UP | DN | LT | SW)
 #define BUTREAD ((~BUTPIN) & BUTMASK) | ((~PIND) & RT)
 
-const uint8_t wavetable[128] = {
+const uint8_t PROGMEM wavetable[128] = {
   0x10,0x10,0x11,0x12,0x13,0x13,0x14,0x15,
   0x15,0x16,0x17,0x17,0x18,0x19,0x19,0x1a,
   0x1a,0x1b,0x1b,0x1c,0x1c,0x1d,0x1d,0x1e,
@@ -37,6 +38,25 @@ const uint8_t wavetable[128] = {
   0xa,0xa,0xb,0xc,0xc,0xd,0xe,0xf,
 };
 
+const uint16_t galaga[16] = {
+	0b0000000100000000,
+	0b0000000100000000,
+	0b0000000100000000,
+	0b0000001110000000,
+	0b0000001110000000,
+	0b0001001110010000,
+	0b0001001110010000,
+	0b0001011111010000,
+	0b1001111011110010,
+	0b1001110001110010,
+	0b1001110101110010,
+	0b1011111111111010,
+	0b1111111111111110,
+	0b1110111111101110,
+	0b1100110101100110,
+	0b1000000100000010
+};
+
 uint8_t frameBuffer[512];
 
 void clearBuffer(void) {
@@ -49,7 +69,8 @@ void sineToBuffer(uint8_t offset) {
   clearBuffer();
   for (uint8_t i=0; i<128; i++) {
     uint8_t idx = (i+offset)%128;
-    frameBuffer[i+((wavetable[idx]/8)*128)] = 1<<(wavetable[idx] % 8);
+    uint8_t data = pgm_read_byte(&(wavetable[idx]));
+    frameBuffer[i+((data/8)*128)] = 1<<(data % 8);
   }
 }
 
@@ -70,6 +91,22 @@ void showBuffer(void) {
     i2c_writebyte(frameBuffer[i]);
   }
   i2c_stop();    
+}
+
+void bitXY(uint8_t x, uint8_t y, uint16_t val) {
+  //Set or clear a bit in the frameBuffer
+  uint16_t idx = ((y/8)*128)+x;
+  uint8_t bitmask = (1<<(y%8));
+  if (val) frameBuffer[idx] |= bitmask;
+  else frameBuffer[idx] &= ~bitmask;
+}
+
+void putGalaga(uint8_t x, uint8_t y) {
+  for (int8_t col=0; col<16; col++) {
+    for (uint8_t row=0; row<16; row++) {
+      bitXY(x+col,row+y,galaga[15-col] & (1<<row));
+    }
+  }
 }
 
 void Delay_ms(int cnt) {
@@ -209,8 +246,14 @@ int main(void)
       i2c_cmd(0x03);
       if (inputs & SW) {
         PORTB |= (1<<PB0);
-        fill_screen(0x00);
-        oled_puts("Stumpy");
+        //fill_screen(0x00);
+        //oled_puts("Stumpy");
+        for (uint8_t i=0; i<112; i++) {
+          clearBuffer();
+          putGalaga(i,8);
+          showBuffer();
+          Delay_ms(5);
+        }
         ++poordebounce;
       }
       if (inputs & LT) {
@@ -228,7 +271,12 @@ int main(void)
       if (inputs & UP) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("There once was a girl named Ione who lived next to a beautiful  lake.");
+        oled_puts("Light shared pin");
+        PORTC &= ~DN; //Make sure this is never a high voltage when pin set as an output        
+        DDRC |= DN;        
+        
+        Delay_ms(100);
+       
         ++poordebounce;
       }
       if (inputs & DN) {
@@ -239,17 +287,22 @@ int main(void)
       }
       if (inputs & RT) {
         PORTB |= (1<<PB0);
-        //fill_screen(0x00);
-        //oled_puts("Ione");
         clearBuffer();
-        sineToBuffer(0);
-        showBuffer();
+        while(1) {
+          for (uint8_t i=0; i<128; i++) {
+            sineToBuffer(i);
+            showBuffer();
+          }
+          break;
+        }
         ++poordebounce;
       }
       if (poordebounce) {
         //Delay so we don't read multiple presses
         Delay_ms(40);
         PORTB &= ~(1<<PB0);
+        DDRC &= ~DN;
+        PORTC |= DN;
       }
     }
     
