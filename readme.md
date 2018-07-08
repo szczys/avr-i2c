@@ -6,22 +6,22 @@ This is a proof of concept for driving an SSD1306 oled display
 Pinout:
 ------------------------------------------------
 
-128x32 OLED (i2c bit bang option)
-GND --> GND
-VCC --> 3.3V
-SCK --> PB6
-SDA --> PB7
+128x32 OLED (i2c bit bang option)  
+GND --> GND  
+VCC --> 3.3V  
+SCK --> PB6  
+SDA --> PB7  
 
-StatusLED
+StatusLED  
 PB0 --> LED --> 1k --> GND
 
-5-Way Switch
-1 --> PC4
-2 --> PC0
-3 --> PC1
-4 --> GND
-5 --> PC2
-6 --> PC3
+5-Way Switch  
+1 --> PC4  
+2 --> PC0  
+3 --> PC1  
+4 --> GND  
+5 --> PC2  
+6 --> PC3  
 
 Remarks:
 -------------------------------------
