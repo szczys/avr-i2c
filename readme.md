@@ -3,8 +3,6 @@ AVR ATmega328p Driving 128x32 OLED (SSD1306) via I2C
 
 This is a proof of concept for driving an SSD1306 oled display
 
-Library can be found here: http://en.radzio.dxp.pl/ks0108/
-
 Pinout:
 ------------------------------------------------
 
