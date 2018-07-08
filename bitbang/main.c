@@ -149,37 +149,31 @@ int main(void)
       if (inputs & SW) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Stumpy");
+        oled_puts("Function 1");
         ++poordebounce;
       }
       if (inputs & LT) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        uint8_t counter = 10;
-        while(counter > 0) {
-          oled_puts("Asa ");
-          counter = counter - 1;
-          oled_putc(counter+'0');
-        }
-        //i2c_cmd(0x2F);
+        oled_puts("Function 2");
         ++poordebounce;
       }
       if (inputs & UP) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("There once was a girl named Ione who lived next to a beautiful  lake.");
+        oled_puts("Function 3");
         ++poordebounce;
       }
       if (inputs & DN) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Merrick");
+        oled_puts("Function 4");
         ++poordebounce;
       }
       if (inputs & RT) {
         PORTB |= (1<<PB0);
         fill_screen(0x00);
-        oled_puts("Ione");
+        oled_puts("Function 5");
         ++poordebounce;
       }
       if (poordebounce) {
@@ -188,14 +182,5 @@ int main(void)
         PORTB &= ~(1<<PB0);
       }
     }
-    
-    /*
-    Delay_ms(1000);
-    //i2c_cmd(0xAE);
-    PINB |= 1<<PB0;
-    Delay_ms(1000);
-    //i2c_cmd(0xAF);
-    PINB |= 1<<PB0;
-    */
   }
 }

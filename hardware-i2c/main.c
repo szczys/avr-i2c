@@ -246,8 +246,6 @@ int main(void)
       i2c_cmd(0x03);
       if (inputs & SW) {
         PORTB |= (1<<PB0);
-        //fill_screen(0x00);
-        //oled_puts("Stumpy");
         for (uint8_t i=0; i<112; i++) {
           clearBuffer();
           putGalaga(i,8);
@@ -261,7 +259,7 @@ int main(void)
         fill_screen(0x00);
         uint8_t counter = 10;
         while(counter > 0) {
-          oled_puts("Asa ");
+          oled_puts("LEFT");
           counter = counter - 1;
           oled_putc(counter+'0');
         }
@@ -272,11 +270,11 @@ int main(void)
         PORTB |= (1<<PB0);
         fill_screen(0x00);
         oled_puts("Light shared pin");
-        PORTC &= ~DN; //Make sure this is never a high voltage when pin set as an output        
-        DDRC |= DN;        
-        
+        PORTC &= ~DN; //Make sure this is never a high voltage when pin set as an output
+        DDRC |= DN;
+
         Delay_ms(100);
-       
+
         ++poordebounce;
       }
       if (inputs & DN) {
